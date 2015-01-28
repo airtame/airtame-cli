@@ -1,0 +1,10 @@
+#ifndef __H_AIRTAME_ERROR_H_
+#define __H_AIRTAME_ERROR_H_
+
+#define AIRTAME_OK 0
+#define AIRTAME_ERROR 1
+#define AIRTAME_TIMEOUT 2
+#define AIRTAME_NOT_INITIALIZED 3
+#define AIRTAME_UNKNOWN 99
+
+#endif
