@@ -1,0 +1,3 @@
+[submodule "deps/jsonrpc-c"]
+	path = deps/jsonrpc-c
+	url = https://github.com/airtame/jsonrpc-c.git
