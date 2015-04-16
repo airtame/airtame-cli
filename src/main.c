@@ -134,6 +134,28 @@ void ssdp_resp_callback(SSDP_t *ssdp, void *user) {
     ssdp_notify_callback(ssdp, user);
 }
 
+cJSON * error_client(jrpc_context * ctx, cJSON * params, cJSON *id) {
+    char *str_params = cJSON_Print(params);
+    cJSON* val1 = cJSON_GetArrayItem(params, 0);
+    int error_code = atoi(val1->valuestring);
+    printf("\n error client code: %d!!!!\n", error_code); fflush(stdout);
+    free(str_params);
+	return NULL;
+}
+
+cJSON * protocol_mismatch(jrpc_context * ctx, cJSON * params, cJSON *id) {
+    char *str_params = cJSON_Print(params);
+    cJSON* val1 = cJSON_GetArrayItem(params, 0);
+    cJSON* val2 = cJSON_GetArrayItem(params, 1);
+    cJSON* val3 = cJSON_GetArrayItem(params, 2);
+    int type = atoi(val1->valuestring);
+    int streamer_version = atoi(val2->valuestring);
+    int client_version = atoi(val3->valuestring);
+    printf("\n protocol version mismatch type %d, streamer version %d client version: %d!!!!\n", type, streamer_version, client_version); fflush(stdout);
+    free(str_params);
+	return NULL;
+}
+
 cJSON * streaming_state(jrpc_context * ctx, cJSON * params, cJSON *id) {
     char *str_params = cJSON_Print(params);
     printf("\nstreaming state: %s\n", str_params); fflush(stdout);
@@ -345,6 +367,8 @@ void read_cmdline(void *data) {
 	jrpc_server_init(notifications_listener, NOTFS_PORT);
 	jrpc_register_procedure(notifications_listener, streaming_state, "streamingState", NULL );
 	jrpc_register_procedure(notifications_listener, connection_state, "connectionState", NULL );
+	jrpc_register_procedure(notifications_listener, protocol_mismatch, "protocolMismatch", NULL );
+	jrpc_register_procedure(notifications_listener, error_client, "errorClient", NULL );
 
     rpc_init_streamer();
 
