@@ -10,19 +10,10 @@ git clone https://github.com/airtame/airtame-cli.git
 cd airtame-cli
 git submodule update --init
 ```
-
-#### Building jsonrpc-c
+#### Building airtame-cli
 ```sh
-mkdir -p deps/out/
-cd deps/jsonrpc-c/
-autoreconf -vfi
-./configure --prefix=$AIRTAME_CLI_PATH/deps/out/
-make install
-```
-#### Building airtame-cli (you can omit -DCMAKE_INSTALL_PREFIX:PATH part)
-```sh
-cd airtame-cli && mkdir out
-cd out && cmake -DCMAKE_INSTALL_PREFIX:PATH=<install-path> ../
+cd airtame-cli && mkdir build
+cd build && cmake -DCMAKE_INSTALL_PREFIX:PATH=<install-path> ../
 make
 ```
 #### Installing airtame-cli
