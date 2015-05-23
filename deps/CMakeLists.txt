@@ -9,5 +9,5 @@ ExternalProject_Add(jsonrpc-c
 )
 
 # install all built dependencies
-install (DIRECTORY "${DEPS_OUT_DIR}/lib/" DESTINATION lib)
-install (DIRECTORY "${DEPS_OUT_DIR}/include/" DESTINATION include)
+install(DIRECTORY "${DEPS_OUT_DIR}/lib/" DESTINATION lib)
+install(DIRECTORY "${DEPS_OUT_DIR}/include/" DESTINATION include)
