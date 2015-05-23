@@ -16,4 +16,6 @@ endif ()
 target_link_libraries (airtame-cli
         "${TRAY_LIBS}")
 
+add_dependencies (airtame-cli jsonrpc-c)
+
 install (TARGETS airtame-cli DESTINATION bin)
