@@ -196,6 +196,7 @@ void print_help(char *name) {
             "        -f <fps>        : Frames per second throttling [1-60 fps]\n"
             "        -q <quality>    : Quality setting [0-5, 0 = minimum 5 = maximum]\n"
             "        -a <1/0>        : Enable/disable audio\n"
+            "        -b <value>      : Set buffer period in ms\n"
             "        -l <1/0>        : Enable/disable fluent playback\n"
             "        -S              : Shell mode\n\n"
             ,name);
@@ -213,6 +214,7 @@ void print_cmdline_help() {
             " q/quality <num>          : Set the quality (0 = minimum, 5 = maximum)\n"
             " m/mode <value>           : Mode (manual, video, work, present)\n"
             " a/audio <1/0>            : Enable/Disable audio\n"
+            " b/buffer <value>         : Set buffer period in ms\n"
             " l/fluent <1/0>           : Enable/Disable fluent playback\n"
             " e/exit                   : Quit\n"
             "\n"
@@ -245,6 +247,14 @@ int parse_cmdline(char *line) {
         if (audio_enabled == NULL) return 0;
         while (audio_enabled && audio_enabled[0] == ' ') audio_enabled++;
         rpc_set_audio_enabled(audio_enabled);
+        return 0;
+    }
+
+    if (line[0] == 'b' || strncmp(line, "buffer", 3) == 0) {
+        char *buffer = strchr(line, ' ');
+        if (buffer == NULL) return 0;
+        while (buffer && buffer[0] == ' ') buffer++;
+        rpc_set_buffer(buffer);
         return 0;
     }
 
