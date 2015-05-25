@@ -78,7 +78,6 @@ void rpc_set_quality(char *q);
 void rpc_set_mode(char *mode);
 void rpc_set_buffer(char *buff_period);
 void rpc_set_audio_enabled(char *enabled);
-void rpc_set_fplayback_enabled(char *enabled);
 void rpc_disconnect(char *ip, char *port);
 void rpc_connect(char *ip, char *port);
 void rpc_init_streamer();
@@ -195,9 +194,8 @@ void print_help(char *name) {
             "        -m <mode>       : Set streaming mode (manual, video, work, present)\n"
             "        -f <fps>        : Frames per second throttling [1-60 fps]\n"
             "        -q <quality>    : Quality setting [0-5, 0 = minimum 5 = maximum]\n"
-            "        -a <1/0>        : Enable/disable audio\n"
+            "        -a <on/off>     : Enable/disable audio\n"
             "        -b <value>      : Set buffer period in ms\n"
-            "        -l <1/0>        : Enable/disable fluent playback\n"
             "        -S              : Shell mode\n\n"
             ,name);
 }
@@ -213,9 +211,8 @@ void print_cmdline_help() {
             " f/fps <num>              : Set the framerate (0-60 fps)\n"
             " q/quality <num>          : Set the quality (0 = minimum, 5 = maximum)\n"
             " m/mode <value>           : Mode (manual, video, work, present)\n"
-            " a/audio <1/0>            : Enable/Disable audio\n"
+            " a/audio <on/off>         : Enable/Disable audio\n"
             " b/buffer <value>         : Set buffer period in ms\n"
-            " l/fluent <1/0>           : Enable/Disable fluent playback\n"
             " e/exit                   : Quit\n"
             "\n"
     );
@@ -231,14 +228,6 @@ int parse_cmdline(char *line) {
     // TODO: improve this and abstract the commands away from here
     if (line[0] == 'h' || strncmp(line, "help", 4) == 0) {
         print_cmdline_help();
-        return 0;
-    }
-
-    if (line[0] == 'l' || strncmp(line, "fluent", 3) == 0) {
-        char *fluent_enabled = strchr(line, ' ');
-        if (fluent_enabled == NULL) return 0;
-        while (fluent_enabled && fluent_enabled[0] == ' ') fluent_enabled++;
-        rpc_set_fplayback_enabled(fluent_enabled);
         return 0;
     }
 
@@ -651,7 +640,7 @@ void rpc_get_state() {
 void rpc_set_audio_enabled(char *enabled) {
     char *av_caps = "";
     // TODO: improve the JSON RPC APIs and add a specific API to control AUDIO
-    if (strcmp("enabled", "1") == 0) {
+    if (strcmp(enabled, "on") == 0) {
         av_caps = "3";
     } else {
         av_caps = "1";
@@ -659,12 +648,6 @@ void rpc_set_audio_enabled(char *enabled) {
     cJSON *result = jrpc_client_call(&cmds_client, SET_STREAMER_SETTINGS_METHOD,
             2, SET_STREAMER_SETTINGS_AV_CAPS_FLAGS_PNAME, av_caps);
     print_rpc_result("enable audio", result);
-}
-
-void rpc_set_fplayback_enabled(char *enabled) {
-    cJSON *result = jrpc_client_call(&cmds_client, SET_STREAMER_SETTINGS_METHOD,
-            2, SET_STREAMER_SETTINGS_VJB_FLAGS_PNAME, enabled);
-    print_rpc_result("fluent playback", result);
 }
 
 void print_rpc_result(char *method, cJSON *result) {
