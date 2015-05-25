@@ -16,7 +16,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Airtame-cli.  If not, see <http://www.gnu.org/licenses/>.
  *
-*/
+ */
 
 #include "ssdp_uuid.h"
 
@@ -39,6 +39,7 @@ int airtame_load_uuid(char *uuid, int *len) {
 
 int airtame_save_uuid(char *uuid) {
     FILE *fp;
+    // TODO: create the uuid file under home folder
     fp = fopen(".saved_uuid", "w");
     if (!fp) return AIRTAME_ERROR;
 

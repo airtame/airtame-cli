@@ -16,7 +16,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Airtame-cli.  If not, see <http://www.gnu.org/licenses/>.
  *
-*/
+ */
 
 #include "channel.h"
 
@@ -196,25 +196,25 @@ int inet_pton(int af, const char *src, void *dst)
 
 const char* inet_ntop(int af, const void* src, char* dst, int cnt) {
 #ifdef InetNtop
-	InetNtop(af, src, dst, cnt);
+    InetNtop(af, src, dst, cnt);
 #else
-	static const char fmt[] = "%u.%u.%u.%u";
-	char tmp[sizeof "255.255.255.255"];
-	unsigned char *charsrc = (unsigned char *)src;
+    static const char fmt[] = "%u.%u.%u.%u";
+    char tmp[sizeof "255.255.255.255"];
+    unsigned char *charsrc = (unsigned char *)src;
 
-	if (af == AF_INET) {
-		if (cnt < strlen("255.255.255.255")) {
-			return (NULL);
-		}
-		sprintf(tmp, fmt, charsrc[0], charsrc[1], charsrc[2], charsrc[3]);
-		strcpy(dst, tmp);
-		return (dst);
-	} else {
-		errno = EAFNOSUPPORT;
-		return (NULL);
-	}
+    if (af == AF_INET) {
+        if (cnt < strlen("255.255.255.255")) {
+            return (NULL);
+        }
+        sprintf(tmp, fmt, charsrc[0], charsrc[1], charsrc[2], charsrc[3]);
+        strcpy(dst, tmp);
+        return (dst);
+    } else {
+        errno = EAFNOSUPPORT;
+        return (NULL);
+    }
 #if 0
-	struct sockaddr_in srcaddr;
+    struct sockaddr_in srcaddr;
     memset(&srcaddr, 0, sizeof(struct sockaddr_in));
     memcpy(&(srcaddr.sin_addr), src, sizeof(srcaddr.sin_addr));
     srcaddr.sin_family = af;
@@ -247,8 +247,8 @@ int channel_init(Channel_t *channel) {
 #endif
 
 #if defined(MULTICAST_ALL_IFS_WIN)
-	channel->pAdapter = NULL;
-	channel->prevAdapter = NULL;
+    channel->pAdapter = NULL;
+    channel->prevAdapter = NULL;
 #endif
     return 1;
 }
@@ -296,12 +296,12 @@ int channel_bind(Channel_t *channel, int port) {
     channel->fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (channel->fd == INVALID_SOCKET) {
         printf("error creating socket\n");
+        printf("error: %s\n", strerror(errno));
         return 0;
     }
 
     if (channel->fd > channel->maxfd)
         channel->maxfd = channel->fd;
-
 
     int yes=1;
     if (setsockopt(channel->fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
@@ -320,6 +320,7 @@ int channel_bind(Channel_t *channel, int port) {
     rc = bind(channel->fd, (const LPSOCKADDR)&channel->addr, sizeof(channel->addr));
     if (rc == SOCKET_ERROR) {
         printf("error binding to port %d: %d\n", port, rc);
+        printf("error: %s\n", strerror(errno));
         return 0;
     }
 
@@ -327,6 +328,7 @@ int channel_bind(Channel_t *channel, int port) {
     socklen_t len = sizeof(sin);
     if (getsockname(channel->fd, (struct sockaddr *)&sin, &len) == -1) {
         printf("error getting socket details!\n");
+        printf("error: %s\n", strerror(errno));
     } else {
         channel->port = ntohs(sin.sin_port);
     }
@@ -366,16 +368,8 @@ int channel_multicast_monitor_ifs(Channel_t *channel, int *changed) {
 
     while (cursor != NULL) {
         if (cursor->ifa_addr->sa_family != AF_INET
-            || (cursor->ifa_flags & IFF_LOOPBACK)
-            || (cursor->ifa_flags & IFF_POINTOPOINT)) {
-            /* FIXME: This needs a bit more attention */
-            //|| ~(cursor->ifa_flags & IFF_MULTICAST)) {
-            /*printf("Interface skipped: %s family: %d loopback: %d p2p: %d mc: %d\n", cursor->ifa_name,
-                                                                                     cursor->ifa_addr->sa_family,
-                                                                                     (cursor->ifa_flags & IFF_LOOPBACK),
-                                                                                     (cursor->ifa_flags & IFF_POINTOPOINT),
-                                                                                     ~(cursor->ifa_flags & IFF_MULTICAST));
-            */
+                || (cursor->ifa_flags & IFF_LOOPBACK)
+                || (cursor->ifa_flags & IFF_POINTOPOINT)) {
             cursor = cursor->ifa_next;
             continue;
         }
@@ -383,8 +377,8 @@ int channel_multicast_monitor_ifs(Channel_t *channel, int *changed) {
         match = 0;
         while (prev_cursor != NULL) {
             if (cursor->ifa_addr->sa_family == prev_cursor->ifa_addr->sa_family &&
-                SOCK_ADDR_IN_ADDR(cursor->ifa_addr).s_addr == SOCK_ADDR_IN_ADDR(prev_cursor->ifa_addr).s_addr &&
-                strcmp(cursor->ifa_name, prev_cursor->ifa_name) == 0) {
+                    SOCK_ADDR_IN_ADDR(cursor->ifa_addr).s_addr == SOCK_ADDR_IN_ADDR(prev_cursor->ifa_addr).s_addr &&
+                    strcmp(cursor->ifa_name, prev_cursor->ifa_name) == 0) {
                 match = 1;
                 break;
             }
@@ -397,7 +391,7 @@ int channel_multicast_monitor_ifs(Channel_t *channel, int *changed) {
         cursor = cursor->ifa_next;
     }
 
-monitor_quit:
+    monitor_quit:
     freeifaddrs(prev_addrs);
     return AIRTAME_OK;
 }
@@ -414,9 +408,9 @@ int channel_multicast_bind(Channel_t *channel, int port) {
     const struct ifaddrs *cursor = channel->addrs;
     while ( cursor != NULL ) {
         if ( cursor->ifa_addr && cursor->ifa_addr->sa_family == AF_INET
-            && !(cursor->ifa_flags & IFF_LOOPBACK)
-            && !(cursor->ifa_flags & IFF_POINTOPOINT)
-            &&  (cursor->ifa_flags & IFF_MULTICAST) ) {
+                && !(cursor->ifa_flags & IFF_LOOPBACK)
+                && !(cursor->ifa_flags & IFF_POINTOPOINT)
+                &&  (cursor->ifa_flags & IFF_MULTICAST) ) {
 
             /* Create sockets for each if */
             channel->fds[channel->used_fds] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -445,6 +439,7 @@ int channel_multicast_bind(Channel_t *channel, int port) {
                 int reuse = 1;
                 if (setsockopt(channel->fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) < 0) {
                     printf("error setting SO_REUSEADDR\n");
+                    printf("error: %s\n", strerror(errno));
                     return 0;
                 }
 
@@ -461,6 +456,7 @@ int channel_multicast_bind(Channel_t *channel, int port) {
                 rc = bind(channel->fd, (const LPSOCKADDR)&channel->addr, sizeof(channel->addr));
                 if (rc == SOCKET_ERROR) {
                     printf("error binding to socket: %d\n", rc);
+                    printf("error: %s\n", strerror(errno));
                     return 0;
                 }
 
@@ -481,9 +477,9 @@ int channel_multicast_join(Channel_t *channel, char *address) {
     const struct ifaddrs *cursor = channel->addrs;
     while ( cursor != NULL ) {
         if ( cursor->ifa_addr && cursor->ifa_addr->sa_family == AF_INET
-            && !(cursor->ifa_flags & IFF_LOOPBACK)
-            && !(cursor->ifa_flags & IFF_POINTOPOINT)
-            &&  (cursor->ifa_flags & IFF_MULTICAST) ) {
+                && !(cursor->ifa_flags & IFF_LOOPBACK)
+                && !(cursor->ifa_flags & IFF_POINTOPOINT)
+                &&  (cursor->ifa_flags & IFF_MULTICAST) ) {
 
             /* Prepare multicast group join request */
             struct ip_mreq multicast_req;
@@ -512,9 +508,9 @@ int channel_multicast_leave(Channel_t *channel, char *address) {
     const struct ifaddrs *cursor = channel->addrs;
     while ( cursor != NULL ) {
         if ( cursor->ifa_addr && cursor->ifa_addr->sa_family == AF_INET
-            && !(cursor->ifa_flags & IFF_LOOPBACK)
-            && !(cursor->ifa_flags & IFF_POINTOPOINT)
-            &&  (cursor->ifa_flags & IFF_MULTICAST) ) {
+                && !(cursor->ifa_flags & IFF_LOOPBACK)
+                && !(cursor->ifa_flags & IFF_POINTOPOINT)
+                &&  (cursor->ifa_flags & IFF_MULTICAST) ) {
 
             /* Prepare multicast group leave request */
             struct ip_mreq multicast_req;
@@ -582,10 +578,10 @@ int internal_multicast_get_ifs(Channel_t *channel) {
     }
 
     if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
-		if (channel->prevAdapter)
-			free(channel->prevAdapter);
-		channel->prevAdapter = channel->pAdapter;
-		channel->pAdapter = pAdapterInfo;
+        if (channel->prevAdapter)
+            free(channel->prevAdapter);
+        channel->prevAdapter = channel->pAdapter;
+        channel->pAdapter = pAdapterInfo;
     } else {
         printf("GetAdaptersInfo failed with error: %d\n", dwRetVal);
         channel->pAdapter = NULL;
@@ -598,10 +594,10 @@ int channel_multicast_monitor_ifs(Channel_t *channel, int *changed) {
     int match = 1;
     *changed = 0;
     PIP_ADAPTER_INFO addrs = channel->pAdapter;
-	if (!addrs) {
-		if (internal_multicast_get_ifs(channel) == AIRTAME_ERROR)
-			return AIRTAME_ERROR;
-	}
+    if (!addrs) {
+        if (internal_multicast_get_ifs(channel) == AIRTAME_ERROR)
+            return AIRTAME_ERROR;
+    }
 
     if (internal_multicast_get_ifs(channel) == AIRTAME_ERROR) {
         return AIRTAME_ERROR;
@@ -626,7 +622,7 @@ int channel_multicast_monitor_ifs(Channel_t *channel, int *changed) {
         cursor = cursor->Next;
     }
 
-monitor_quit:
+    monitor_quit:
     //if (prev_cursor){
     //   free(prev_cursor);
     //}
@@ -661,7 +657,7 @@ int channel_multicast_bind(Channel_t *channel, int port) {
                 printf("Failed to join multicast on if %s\n", cursor->AdapterName);
                 return 0;
             }
-  
+
             /* We're not interested in receiving our own messages, so we can disable loopback
              (don't rely solely on this - in some cases you can still receive your own messages) */
             unsigned char loop = 0;
@@ -969,10 +965,6 @@ int channel_recv(Channel_t *channel, char *buff, int size) {
 }
 
 int channel_compare(Channel_t *mainchan, Channel_t *a) {
-    /*	printf("FD 1: %d FD 2: %d\n", mainchan->fd, a->fd);
-        printf("Port 1: %d Port 2: %d\n", mainchan->client.sin_port, a->client.sin_port);
-        printf("IP 1: %d IP 2: %d\n", mainchan->client.sin_addr.s_addr, a->client.sin_addr.s_addr);
-    */
     if (mainchan->client.sin_family == a->client.sin_family &&
             mainchan->client.sin_port == a->client.sin_port &&
             mainchan->client.sin_addr.s_addr == a->client.sin_addr.s_addr)
@@ -1003,7 +995,7 @@ int channel_wait(Channel_t *channel) {
     fd_set read_flags;
     int err = 0;
     waitv.tv_sec = 0;
-    waitv.tv_usec = 5000; // 5ms
+    waitv.tv_usec = 5000;
 
     FD_ZERO(&read_flags);
     FD_SET(channel->fd, &read_flags);
@@ -1016,7 +1008,7 @@ int channel_wait_all(Channel_t channels[], int numchans) {
     fd_set read_flags;
     int i = 0, err = 0;
     waitv.tv_sec = 0;
-    waitv.tv_usec = 5000; // 5ms
+    waitv.tv_usec = 5000;
     int maxfd=0;
 
     FD_ZERO(&read_flags);

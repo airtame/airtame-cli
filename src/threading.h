@@ -16,13 +16,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Airtame-cli.  If not, see <http://www.gnu.org/licenses/>.
  *
-*/
+ */
 
 #ifndef __H_LOCKING__
 #define __H_LOCKING__
 /* Cross platform threading and locking abstraction */
-
-#include "error.h"
 
 #ifdef _WIN32
 #include <tchar.h>
@@ -31,7 +29,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #endif
-
 
 typedef struct {
     /* Win specific locks */

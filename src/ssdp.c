@@ -16,7 +16,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Airtame-cli.  If not, see <http://www.gnu.org/licenses/>.
  *
-*/
+ */
 
 #include "ssdp.h"
 #define MULTICAST_IF_MONITOR_TIMEOUT 2
@@ -45,11 +45,10 @@ void internal_print_ssdp_options(SSDP_Options_t *o) {
 
 int internal_ssdp_net_init(SSDP_t *ssdp) {
     channel_init(&ssdp->sockets[SSDP_SOCKET_MULTICAST]);
-	channel_init(&ssdp->sockets[SSDP_SOCKET_UNICAST]);
+    channel_init(&ssdp->sockets[SSDP_SOCKET_UNICAST]);
     channel_multicast_bind(&ssdp->sockets[SSDP_SOCKET_MULTICAST], SSDP_BIND_PORT);
-	channel_bind(&ssdp->sockets[SSDP_SOCKET_UNICAST], SSDP_BIND_PORT+1);
+    channel_bind(&ssdp->sockets[SSDP_SOCKET_UNICAST], SSDP_BIND_PORT+1);
     channel_multicast_join(&ssdp->sockets[SSDP_SOCKET_MULTICAST], SSDP_MCAST_ADDR);
-
     return AIRTAME_OK;
 }
 
@@ -68,11 +67,9 @@ int ssdp_init(SSDP_t *ssdp, ssdp_callback_f n, ssdp_callback_f r) {
     sprintf(ssdp->service, "");
     sprintf(ssdp->location, "");
     sprintf(ssdp->usn, "");
-
     ssdp->notify_callback = n;
     ssdp->resp_callback = r;
     ssdp->network_notify_callback = 0;
-
     return AIRTAME_OK;
 }
 
@@ -90,7 +87,6 @@ int ssdp_parse(char *buff, int size, SSDP_Options_t *o) {
     int r, vallen;
 
     memset((void *)o, 0, sizeof(SSDP_Options_t));
-
     do {
         ptr = strchr(ptr+1, '\n');
         if (ptr) {
@@ -98,8 +94,6 @@ int ssdp_parse(char *buff, int size, SSDP_Options_t *o) {
             r = (ptr-pptr < OPTIONS_SIZE ? ptr-pptr : OPTIONS_SIZE-1);
             strncpy(currline, pptr, r);
             currline[r] = 0;
-
-            /* Let's parse some HTML */
 
             /* Notification from devices */
             if (strncmp(currline, "NOTIFY", 6) == 0) {
@@ -156,13 +150,12 @@ int ssdp_parse(char *buff, int size, SSDP_Options_t *o) {
         }
         pptr = ptr+1;
     } while (ptr);
-    return 0;
+    return AIRTAME_OK;
 }
 
 int ssdp_advertise(SSDP_t *ssdp, char nts, char *service, char *location, char *usn, char *name, char *security) {
     char buffer[1000];
     int cache_age = 100;
-
     char *nt_types[] = { "ssdp:alive", "ssdp:byebye", "ssdp:update" };
 
     sprintf(buffer, "NOTIFY * HTTP/1.1\r\n"
@@ -177,8 +170,6 @@ int ssdp_advertise(SSDP_t *ssdp, char nts, char *service, char *location, char *
             "AIRTAME-SECURITY: %s\r\n\r\n"
             ,SSDP_MCAST_ADDR, SSDP_MCAST_PORT, cache_age, location, service, nt_types[(int)nts], usn, name, security);
 
-    //printf("%s", buffer);
-
     channel_multicast_send(&ssdp->sockets[SSDP_SOCKET_MULTICAST], SSDP_MCAST_ADDR, SSDP_MCAST_PORT, buffer, strlen(buffer));
 
     strcpy(ssdp->service, service);
@@ -186,7 +177,6 @@ int ssdp_advertise(SSDP_t *ssdp, char nts, char *service, char *location, char *
     strcpy(ssdp->usn, usn);
     strcpy(ssdp->name, name);
     strcpy(ssdp->security, security);
-
     return AIRTAME_OK;
 }
 
@@ -202,10 +192,7 @@ int ssdp_search(SSDP_t *ssdp, char *st) {
             "USER-AGENT: Dummy/1.0 UPnP/1.1 AirTame-SSDP/1.0\r\n\r\n"
             ,SSDP_MCAST_ADDR, SSDP_MCAST_PORT, cache_age, st);
 
-    //printf("%s", buffer);
-
     channel_multicast_send(&ssdp->sockets[SSDP_SOCKET_MULTICAST], SSDP_MCAST_ADDR, SSDP_MCAST_PORT, buffer, strlen(buffer));
-
     return AIRTAME_OK;
 }
 
@@ -221,8 +208,8 @@ int ssdp_reply(SSDP_t *ssdp, char *st, char *location, char *usn, char *name, ch
             "AIRTAME-SECURITY: %s\r\n\r\n"
             ,cache_age, st, location, usn, name, security);
 
-	channel_clone(&ssdp->sockets[SSDP_SOCKET_MULTICAST], &ssdp->sockets[SSDP_SOCKET_UNICAST]);
-	ssdp->sockets[SSDP_SOCKET_UNICAST].client.sin_port = htons(SSDP_MCAST_PORT+1);
+    channel_clone(&ssdp->sockets[SSDP_SOCKET_MULTICAST], &ssdp->sockets[SSDP_SOCKET_UNICAST]);
+    ssdp->sockets[SSDP_SOCKET_UNICAST].client.sin_port = htons(SSDP_MCAST_PORT+1);
     channel_send(&ssdp->sockets[SSDP_SOCKET_UNICAST], buffer, strlen(buffer));
     return AIRTAME_OK;
 }
@@ -233,12 +220,7 @@ int ssdp_handle(SSDP_t *ssdp) {
     SSDP_Options_t o;
 
     curr_sock = channel_wait_all(ssdp->sockets, 2);
-	if (curr_sock < 0) {
-        /*if (time(0) - ssdp->last_multicast_msg > MULTICAST_TIMEOUT && !ssdp->broadcast_enabled) {
-            printf("Have not received any multicast in a while. Turning on broadcast!\n");
-            channel_broadcast_join(&ssdp->multicast);
-            ssdp->broadcast_enabled = 1;
-        }*/
+    if (curr_sock < 0) {
         if (time(0) - ssdp->last_monitor_handle > MULTICAST_IF_MONITOR_TIMEOUT) {
             rc = channel_multicast_monitor_ifs(&ssdp->sockets[SSDP_SOCKET_MULTICAST], &ifs_changed);
             if (rc == AIRTAME_ERROR) {
@@ -261,13 +243,10 @@ int ssdp_handle(SSDP_t *ssdp) {
         return AIRTAME_TIMEOUT;
     }
 
-    //printf("Received (%d bytes): %s\n", rc, buff);
     memset(&o, 0, sizeof(o));
     ssdp_parse(buff, rc, &o);
     o.ip = inet_ntoa(ssdp->sockets[curr_sock].client.sin_addr);
     o.port = ssdp->sockets[curr_sock].client.sin_port;
-
-    //internal_print_ssdp_options(&o);
 
     /* Notify message */
     if (o.req == 1) {
@@ -285,11 +264,9 @@ int ssdp_handle(SSDP_t *ssdp) {
     }
 
     ssdp->last_multicast_msg = time(0);
-
     return AIRTAME_OK;
 }
 
 int ssdp_cleanup(SSDP_t *ssdp) {
     return internal_ssdp_net_cleanup(ssdp);
 }
-
