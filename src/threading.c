@@ -16,9 +16,10 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Airtame-cli.  If not, see <http://www.gnu.org/licenses/>.
  *
-*/
+ */
 
 #include "threading.h"
+#include "error.h"
 
 int threading_create_thread(Thread_t *t, void (*fun)(void *), void *user) {
 #ifdef _WIN32
@@ -77,22 +78,22 @@ void threading_unlock_thread(Thread_t *t) {
 
 int threading_cleanup_thread(Thread_t *t) {
 #ifdef _WIN32
-	DWORD dwWaitResult;
-	DWORD ExitCode=0;
-	dwWaitResult = WaitForSingleObject(t->thread_id, 3000);
-	while(dwWaitResult == WAIT_TIMEOUT)
-	{
-		dwWaitResult = WaitForSingleObject(t->thread_id, 10);
-	}
-	if(dwWaitResult == WAIT_FAILED)
-		printf("WaitForSingleObject failed with error: %d\n", GetLastError());
-	GetExitCodeThread(t->thread_id, &ExitCode);
-	if(ExitCode == STILL_ACTIVE)
-	{
-		printf("ERROR Thread is STILL_ACTIVE!\n");
-	}
-	CloseHandle(t->thread_id);
-	t->thread_id = NULL;
+    DWORD dwWaitResult;
+    DWORD ExitCode=0;
+    dwWaitResult = WaitForSingleObject(t->thread_id, 3000);
+    while(dwWaitResult == WAIT_TIMEOUT)
+    {
+        dwWaitResult = WaitForSingleObject(t->thread_id, 10);
+    }
+    if(dwWaitResult == WAIT_FAILED)
+        printf("WaitForSingleObject failed with error: %d\n", GetLastError());
+    GetExitCodeThread(t->thread_id, &ExitCode);
+    if(ExitCode == STILL_ACTIVE)
+    {
+        printf("ERROR Thread is STILL_ACTIVE!\n");
+    }
+    CloseHandle(t->thread_id);
+    t->thread_id = NULL;
 #else
     pthread_cancel(t->thread_id);
     pthread_join(t->thread_id, NULL);

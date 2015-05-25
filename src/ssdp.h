@@ -16,7 +16,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Airtame-cli.  If not, see <http://www.gnu.org/licenses/>.
  *
-*/
+ */
 
 #ifndef __H_SSDP__
 #define __H_SSDP__
