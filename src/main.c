@@ -31,15 +31,6 @@
 
 #define AIRTAME_SSDP_SERVICE "airtame:streamer"
 
-// Platform-dependent sleep routines.
-#if defined( __WINDOWS_ASIO__ ) || defined( __WINDOWS_DS__ ) || defined( __WINDOWS_WASAPI__ ) || defined(_WIN32)
-#include <windows.h>
-#define SLEEP( milliseconds ) Sleep( (DWORD) milliseconds )
-#else // Unix variants
-#include <unistd.h>
-#define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
-#endif
-
 #ifndef __GNUC__
 #include "wingetopt.h"
 #else
@@ -98,7 +89,7 @@ void rpc_get_state();
 void int_handler(int s) {
     currcmd_dontstop = 0;
     printf("Caught Ctrl-C\n");
-    SLEEP(1000);
+    asleep(1000);
     if (current_function != SHELL) {
         signal(SIGTERM, SIG_DFL);
         signal(SIGINT, SIG_DFL);
@@ -480,7 +471,7 @@ DevDetails *search_for_device(char *name, int timeout) {
                 return NULL;
             }
         }
-		SLEEP(50);
+		asleep(50);
 	}
 	return NULL;
 }
@@ -499,7 +490,7 @@ void scan_devices() {
             }
             printf("\n");
         } else {
-            SLEEP(50);
+            asleep(50);
         }
     }
     printf("\nStopped scanning.\n");
@@ -602,7 +593,7 @@ int main(int argc, char **argv) {
 
 	int *runner = &dontstop;
 	if (current_function != SHELL) runner = &currcmd_dontstop;
-	while (*runner) SLEEP(100);
+	while (*runner) asleep(100);
 
     threading_cleanup_thread(&ssdp_thread);
     threading_cleanup_thread(&notifications_thread);

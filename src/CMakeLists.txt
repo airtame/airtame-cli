@@ -7,6 +7,7 @@ add_executable(${AIRTAME_CLI_TNAME}
         ssdp.c
         ssdp_uuid.c
         channel.c
+        utils.c
         )
 
 if(APPLE)
