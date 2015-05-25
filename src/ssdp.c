@@ -221,7 +221,6 @@ int ssdp_reply(SSDP_t *ssdp, char *st, char *location, char *usn, char *name, ch
             "AIRTAME-SECURITY: %s\r\n\r\n"
             ,cache_age, st, location, usn, name, security);
 
-    printf("%s\n", buffer);
 	channel_clone(&ssdp->sockets[SSDP_SOCKET_MULTICAST], &ssdp->sockets[SSDP_SOCKET_UNICAST]);
 	ssdp->sockets[SSDP_SOCKET_UNICAST].client.sin_port = htons(SSDP_MCAST_PORT+1);
     channel_send(&ssdp->sockets[SSDP_SOCKET_UNICAST], buffer, strlen(buffer));
@@ -278,9 +277,7 @@ int ssdp_handle(SSDP_t *ssdp) {
         /* If someone requests our service, or queries all then reply, otherwise ignore! */
         if (strcmp(o.st, ssdp->service) == 0 ||
                 strncmp(o.st, "ssdp:all", 7) == 0) {
-            printf("Replying to %s:%d!\n", o.ip, o.port);
             ssdp_reply(ssdp, ssdp->service, ssdp->location, ssdp->usn, ssdp->name, ssdp->security);
-            printf("Done.\n");
         }
         /* Search response */
     } else if (o.req == 3) {
