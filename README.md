@@ -21,6 +21,14 @@ make
 make install
 ```
 
+#### Running
+Make sure the airtame-streamer is running with -D option
+```sh
+airtame-streamer -D
+airtame-cli -S
+$help
+```
+
 ## Licence
 airtame-cli is released under GNU General Public License. Please see the [LICENCE.txt](LICENCE.txt) file.
 
