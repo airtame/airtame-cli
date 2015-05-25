@@ -28,6 +28,7 @@ airtame-cli is released under GNU General Public License. Please see the [LICENC
 We would love to get contributions, feedback or bug reports from you. For now we don't have a formalized source code format, but if you want to contribute just try to use the same style of the file you are changing. We plan to clean the code and make it look better very soon :).
 
 ### //TODO:
+- use linenoise to read the commands in shell mode
 - documentation
 - cleanup the code
 - improve the client side in the jsonrpc-c project
