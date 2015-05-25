@@ -8,8 +8,6 @@
 #ifndef AIRTAME_SERVER_RPC_H_
 #define AIRTAME_SERVER_RPC_H_
 
-// TODO: find a better way to share this between the streamer and the cli client.
-
 /**
 {
     "title": "RPC notification schema",
@@ -126,6 +124,14 @@
  */
 #define UNREGISTER_LISTENER_METHOD          ("unregisterListener")
 
+/**
+ * Get the settings for a specified mode
+ *
+ * name: getModeSettings
+ * params: streaming_mode - the name of the mode (e.g., work, video, present)
+ * result: mode_settings JSON object if RPC succeeded, error otherwise
+ */
+#define GET_MODE_SETTINGS_METHOD ("getModeSettings")
 
 /**
  * Get the internal state of the streamer.
@@ -226,22 +232,39 @@
 
 #define SET_STREAMER_SETTINGS_QUALITY_PNAME           ("quality")
 #define SET_STREAMER_SETTINGS_FRAMERATE_PNAME         ("framerate")
-#define SET_STREAMER_SETTINGS_MODE_PNAME              ("mode")
-#define SET_STREAMER_SETTINGS_MODE_VAL_FASTSTR           ("FAST_STREAMING")
-#define SET_STREAMER_SETTINGS_MODE_VAL_SAFESTR           ("SAFE_STREAMING")
 #define SET_STREAMER_SETTINGS_BUFF_PNAME              ("buffer")
+/**
+ * Audio/Video capabilities flags. Int value, bit positions used:
+ * 0 - video flag (0 - video disabled, 1 - video enabled)
+ * 1 - audio flag (0 - audio disabled, 1 - audio enabled)
+ */
+#define SET_STREAMER_SETTINGS_AV_CAPS_FLAGS_PNAME      ("av_flags")
+/**
+ * Video jitterbuffer flags. Int value, bit positions used:
+ * 0 - fluent playback flag (0 - fluent playback disabled, 1 - fluent playback enabled)
+ */
+#define SET_STREAMER_SETTINGS_VJB_FLAGS_PNAME                 ("video_jb_flags")
+/**
+ * Audio jitterbuffer flags. Int value, bit positions used:
+ * unused right now
+ */
+#define SET_STREAMER_SETTINGS_AJB_FLAGS_PNAME                 ("audio_jb_flags")
+/**
+ * Jitter buffer delay
+ */
+#define SET_STREAMER_SETTINGS_JB_BUFFER_DELAY_PNAME           ("jb_delay")
+
+/* Reliable transport */
+#define SET_STREAMER_SETTINGS_RELIABLE_TRANSPORT ("reliable_transport")
+
+/* Streaming mode parameters */
+#define STREAMING_MODE_PNAME ("streaming_mode")
+#define STREAMING_MODE_MANUAL ("manual")
+#define STREAMING_MODE_VIDEO ("video")
+#define STREAMING_MODE_WORK ("work")
+#define STREAMING_MODE_PRESENT ("present")
 
 /**
-set the mode to fast streaming
-{
-  "method": "setStreamerSettings",
-  "params": [
-    "mode",
-    "FAST_STREAMING"
-  ],
-  "id": 23
-}
-
 set framerate to 23
 {
   "method": "setStreamerSettings",
@@ -251,6 +274,81 @@ set framerate to 23
   ],
   "id": 23
 }
+
+enable both audio and video streaming
+{
+  "method": "setStreamerSettings",
+  "params": [
+    "av_flags",
+    "3"
+  ],
+  "id": 23
+}
  */
 
+/************************************************ NOTIFICATIONS *******************************************************/
+/**
+ * Show a notification on the listener side.
+ *
+ * name: show_notification
+ * params: notification (@see the Notification Object JSON Schema)
+ * result: ok if the RPC call succeeded, error otherwise. The actual
+ *         cleaning status is got through the listener
+ */
+#define SHOW_NOTIFICATION_METHOD               ("show_notification")
+
+/**
+ * Dismiss a notification on the listener side.
+ *
+ * name: dismiss_notification
+ * params: the ID of the notification to dismiss
+ * result: ok if the RPC call succeeded, error otherwise. The actual
+ *         cleaning status is got through the listener
+ */
+#define DISMISS_NOTIFICATION_METHOD               ("dismiss_notification")
+
+/**
+    "title": "Notification Object JSON Schema",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "enum(string)"
+            "description": "The type of the notification. Can be: INFO, WARNING or ERROR."
+        },
+        "category": {
+            "type": "enum(string)"
+            "description": "The category of the notification. Can be: STREAMING, SETUP, CONNECTION or STATE."
+        },
+        "title": {
+            "type": "string"
+            "description": "The title of the notification."
+        },
+        "message": {
+            "type": "string"
+            "description": "The message to be displayed in the notification."
+        },
+        "priority": {
+            "type": "number"
+            "description": "The priority of the notification."
+        },
+        "action": {
+            "type": "enum(string)"
+            "description": "The action of the notification. Can specify for example what buttons the notification
+                             can have."
+        },
+        "dismiss_type": {
+            "type": "enum(string)"
+            "description": "The way to dismiss the notification. Can be: TIMEOUT or TRIGGER or both.
+                    TIMEOUT: the notification will be dismissed after a timeout
+                    TRIGGER: the notification will be dismissed when dismiss_notification is called"
+        },
+        "id": {
+            "type": "number"
+            "description": "The ID of the notification. Will be used later to dismiss the notification, instead of
+                            passing the full notification object, the dismiss_notificatoin will have only the ID
+                            as a parameter."
+        },
+    },
+}
+ */
 #endif /* AIRTAME_SERVER_RPC_H_ */
