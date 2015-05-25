@@ -372,7 +372,6 @@ void read_cmdline(void *data) {
     //rpc_close_streamer();
     result = jrpc_client_call(&cmds_client, "unregisterListener", 2, "127.0.0.1", not_port);
     print_rpc_result("unregisterListener", result);
-    rpc_close_streamer();
     jrpc_server_stop(notifications_listener);
     free(not_port);
     printf("\nSee you again! ;-)\n");
