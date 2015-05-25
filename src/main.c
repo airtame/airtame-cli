@@ -691,7 +691,9 @@ void print_rpc_result(char *method, cJSON *result) {
             printf("\n%s: unknown error with the RPC call", method);
         }
     } else if (res != NULL) {
-            printf("\n%s result: %s", method, res->valuestring);
+            char *state_str = cJSON_Print(res);
+            printf("\n%s result: %s", method, state_str);
+            free(state_str);
     } else {
             printf("\n%s: unknown error with the RPC call", method);
     }
