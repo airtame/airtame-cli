@@ -331,7 +331,7 @@ int parse_cmdline(char *line) {
     }
 
     if (strstr(line, "quit") || strstr(line, "exit") || strstr(line, "e")) {
-        printf("\n\n exiting because: %s", line);
+        printf("\n\n exiting because: %s\n", line);
         return 1;
     }
 
@@ -440,7 +440,7 @@ int process_args(int argc, char **argv) {
             print_help(argv[0]);
             exit(0);
         default:
-            printf("Invalid command line arguments");
+            printf("Invalid command line arguments!\n");
             return 1;
         }
     }
@@ -508,14 +508,14 @@ int main(int argc, char **argv) {
 #endif
 
     if (process_args(argc, argv)) {
-        printf("Invalid/unimplemented command line options");
+        printf("Invalid/unimplemented command line options!\n");
         return 1;
     }
 
     jrpc_client_init(&cmds_client);
 
     if (jrpc_client_connect(&cmds_client, "127.0.0.1", CMDS_PORT) == -1) {
-        printf("Cannnot connect to the airtame-server. Exiting...");
+        printf("Cannnot connect to the airtame-server. Exiting...\n");
         return 1;
     }
 
