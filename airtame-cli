@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+###############################################################################
+#
+# Copyright (c) 2013-2016  AIRTAME ApS
+# Copyright (c) 2016  Lars Hagstrom <lars@foldspace.nu>
+#
+###############################################################################
+#
+# airtame-cli.py is free software: you can redistribute it and/or modify
+# it under the terms of version 3 of the GNU General Public License as
+# published by the Free Software Foundation.
+#
+# airtame-cli.py is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with airtame-cli.py.  If not, see <http://www.gnu.org/licenses/>.
+#
+###############################################################################
+import sys, zmq, argparse, json, time
+
+def send_command(method, params):
+    command = json.dumps({"method":method,"params":params,"id":1})
+    context = zmq.Context()
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:8004")
+    socket.send_string(command)
+    print (socket.recv_string())
+
+class AirtameCli(object):
+
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            usage=sys.argv[0] + ''' <command> [<args>]
+
+The supported commands are:
+   init       Initialise airtame-streamer.
+   connect    Start streaming to an airtame device.
+   disconnect Stop streaming to an airtame device.
+   clean      Clean the airtame-streamer.
+   exit       Terminate airtame-streamer.
+   state      Get the current state of the airtame streamer.
+''')
+        parser.add_argument('command', help='Subcommand to run')
+        # parse_args defaults to [1:] for args, but you need to
+        # exclude the rest of the args too, or validation will fail
+        args = parser.parse_args(sys.argv[1:2])
+        if not hasattr(self, args.command):
+            print('Unrecognized command')
+            parser.print_help()
+            exit(1)
+        # use dispatch pattern to invoke method with same name
+        getattr(self, args.command)()
+
+    def init(self):
+        parser = argparse.ArgumentParser(
+            description='Initialise airtame-streamer.',
+            prog = sys.argv[0] + " init")
+        parser.parse_args(sys.argv[2:])
+        print("Initialising airtame-streamer")
+        send_command("init",{})
+        time.sleep(2.0)
+        #this is a bunch of stuff that the widget does on startup
+        send_command("set_settings",{"streaming_mode":"work"})
+        send_command("set_settings",{"framerate":20})
+        send_command("set_settings",{"buffer":0})
+        send_command("set_settings",{"enable_audio":False})
+        send_command("set_settings",{"quality":2})
+        #send_command("set_settings",{"encode_resolution":"1920x1080"})
+        send_command("set_settings",{"reliable_transport":True})
+        send_command("set_settings",{"enable_video":True})
+
+    def state(self):
+        parser = argparse.ArgumentParser(
+            description='Get the current state of the airtame streamer.',
+            prog = sys.argv[0] + " state")
+
+        parser.parse_args(sys.argv[2:])
+        send_command("get_state",{})
+
+    def clean(self):
+        parser = argparse.ArgumentParser(
+            description='Clean the airtame-streamer.',
+            prog = sys.argv[0] + " clean")
+
+        parser.parse_args(sys.argv[2:])
+        send_command("clean",{})
+
+    def exit(self):
+        parser = argparse.ArgumentParser(
+            description='Stop the airtame-streamer program.',
+            prog = sys.argv[0] + " exit")
+
+        parser.parse_args(sys.argv[2:])
+        send_command("program_exit",{})
+
+    def connect(self):
+        parser = argparse.ArgumentParser(
+            description='Start streaming to an airtame device.',
+            prog = sys.argv[0] + " connect")
+
+        parser.add_argument('host', help="Hostname or ip address of the airtame to connect to.")
+
+        args = parser.parse_args(sys.argv[2:])
+        send_command("connect",{"ip":args.host,"port":8002})
+
+    def disconnect(self):
+        parser = argparse.ArgumentParser(
+            description='Stop streaming to an airtame device.',
+            prog = sys.argv[0] + " disconnect")
+
+        parser.add_argument('host', help="Ip address of the airtame to disconnect from (hostname does not work).")
+
+        args = parser.parse_args(sys.argv[2:])
+        send_command("disconnect",{"ip":args.host,"port":8002})
+
+if __name__ == '__main__':
+    AirtameCli()
